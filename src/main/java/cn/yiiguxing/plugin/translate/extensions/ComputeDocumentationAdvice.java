@@ -19,10 +19,11 @@ public class ComputeDocumentationAdvice {
             }
             DocumentationData documentationData = (DocumentationData) result;
             String currentHtml = documentationData.getHtml();
-            // 反射拿到由插件注册的静态字段, 该字段是一个函数, 该函数能拿到插件的上下文.
-            Class<?> implKtClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt");
-            Field translateManagerActionField = implKtClass.getDeclaredField("_cn_yiiguxing_plugin_translate_xuhuanzy_reflect_action");
-            Function<String, String> translateFunctionInstance =  (Function<String, String>)translateManagerActionField.get(null);
+
+            Class<?> testClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.CustomDispatcher");
+            Field dispatcherField = testClass.getDeclaredField("dispatcher");
+            dispatcherField.setAccessible(true);
+            Function<String, String> dispatcher = (Function<String, String>) dispatcherField.get(null);
 
             // 通过反射拿到实际存储文档的字段
             Field contentField = documentationData.getClass().getDeclaredField("content");
@@ -31,8 +32,8 @@ public class ComputeDocumentationAdvice {
             Field htmlField = contentData.getClass().getDeclaredField("html");
             htmlField.setAccessible(true);
 
-            // 设置为经过处理的文档
-            htmlField.set(contentData, translateFunctionInstance.apply(currentHtml));
+            // 设置
+            htmlField.set(contentData,dispatcher.apply(currentHtml));
 
         } catch (Exception e) {
         }

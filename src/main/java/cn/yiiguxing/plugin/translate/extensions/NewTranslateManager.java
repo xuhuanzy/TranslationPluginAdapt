@@ -8,18 +8,23 @@ import kotlin.coroutines.Continuation;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
-import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.utility.RandomString;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.instrument.Instrumentation;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.function.Function;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class NewTranslateManager extends BaseStartupActivity {
 
@@ -27,39 +32,83 @@ public class NewTranslateManager extends BaseStartupActivity {
         super(true, false);
     }
 
+
     @Override
     protected Object onRunActivity(@NotNull Project project, @NotNull Continuation<? super Unit> $completion) {
         try {
-            ByteBuddyAgent.install();
+            Instrumentation instrumentation = ByteBuddyAgent.install();
+
             Class<?> implKtClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt");
 
-            DynamicType.Loaded<?> bb = new ByteBuddy()
-                    .redefine(implKtClass)
+            // 注入调度类
+            ClassLoader pathLoader = implKtClass.getClassLoader();
+            NewTranslateManager.injectClass(instrumentation, pathLoader, CustomDispatcher.class);
+            Class<?> dispatcherClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.CustomDispatcher", true, pathLoader);
+            // 注册翻译入口
+            Function<String, String> translateDispatch = (html) -> TranslatedDocumentationProvider.Companion.translateNew(html, null);
+            Field dispatcherClassField = dispatcherClass.getDeclaredField("dispatcher");
+            dispatcherClassField.setAccessible(true);
+            dispatcherClassField.set(null, translateDispatch);
+
+            // 拦截
+            new ByteBuddy()
+                    .rebase(implKtClass)
                     .visit(Advice.to(ComputeDocumentationAdvice.class,
                                     new ClassFileLocator.Compound(
                                             ClassFileLocator.ForClassLoader.of(implKtClass.getClassLoader()),
                                             ClassFileLocator.ForClassLoader.of(NewTranslateManager.class.getClassLoader()))
                             ).on(ElementMatchers.named("computeDocumentation"))
                     )
-                    .defineField("_cn_yiiguxing_plugin_translate_xuhuanzy_reflect_action", Function.class, java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.PUBLIC)
                     .make()
                     .load(implKtClass.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
 
-            // 注册翻译入口
-            Function<String, String> translateFunction = (html) -> {
-                return TranslatedDocumentationProvider.Companion.translateNew(html, null);
-            };
-            // 使用反射将静态字段赋值为该 Function 实例
-            Field translateManagerActionField = implKtClass.getDeclaredField("_cn_yiiguxing_plugin_translate_xuhuanzy_reflect_action");
-            translateManagerActionField.setAccessible(true);
-            translateManagerActionField.set(null, translateFunction);
-
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
 
         return null;
     }
 
+    // 从 JAR 文件中提取所有的 .class 文件，并返回类名和字节码的映射
+    public static Map<TypeDescription, byte[]> extractClassesFromJar(String jarFilePath) throws IOException {
+        Map<TypeDescription, byte[]> classMap = new HashMap<>();
+        JarFile jarFile = new JarFile(new File(jarFilePath));
+
+        Enumeration<JarEntry> entries = jarFile.entries();
+        while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+
+            // 仅处理 .class 文件
+            if (entry.getName().endsWith(".class")) {
+                String className = entry.getName().replace("/", ".").replace(".class", "");
+
+                // 读取类文件字节码
+                try (InputStream classStream = jarFile.getInputStream(entry)) {
+                    byte[] classBytes = classStream.readAllBytes();
+
+                    // 将类的字节码添加到 Map 中
+                    TypeDescription typeDescription = new TypeDescription.Latent(className, 0, null);
+                    classMap.put(typeDescription, classBytes);
+                }
+            }
+        }
+        return classMap;
+    }
+
+    // 注入类
+    public static void injectClass(Instrumentation instrumentation, ClassLoader classLoader, Class calssname) throws ClassNotFoundException {
+        // 创建一个临时目录来存放类文件
+        File tempDir = new File(System.getProperty("java.io.tmpdir"), "bytebuddy-temp-" + RandomString.make());
+        if (!tempDir.mkdir()) {
+            throw new IllegalStateException("Failed to create temporary directory");
+        }
+        // 注入
+        ClassInjector injector = ClassInjector.UsingInstrumentation.of(tempDir, ClassInjector.UsingInstrumentation.Target.BOOTSTRAP, instrumentation);
+        injector.inject(Collections.singletonMap(
+                new TypeDescription.ForLoadedType(Class.forName(calssname.getName())),
+                ClassFileLocator.ForClassLoader.read(calssname)
+        ));
+        classLoader.loadClass(calssname.getName());
+    }
 
 }

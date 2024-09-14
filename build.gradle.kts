@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 
 plugins {
     id("java")
-    id("org.jetbrains.intellij.platform.migration") version "2.0.1"
+//    id("org.jetbrains.intellij.platform.migration") version "2.0.1"
 
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.kover) // Gradle Kover Plugin
@@ -53,7 +53,7 @@ extra["fullPluginVersion"] = fullPluginVersion.get()
 extra["publishChannel"] = publishChannel.get()
 
 group = properties("pluginGroup").get()
-version = fullPluginVersion.get()
+version = "3.7.999"
 
 repositories {
     mavenLocal()
@@ -154,7 +154,7 @@ tasks {
     }
 
     patchPluginXml {
-        version = fullPluginVersion
+        version = "3.7.999"
         sinceBuild = properties("pluginSinceBuild")
         untilBuild = properties("pluginUntilBuild")
         pluginDescription = projectDir.resolve("DESCRIPTION.md").readText()
