@@ -6,7 +6,9 @@ import java.time.format.DateTimeFormatter
 
 
 plugins {
-    id("java") // Java support
+    id("java")
+    id("org.jetbrains.intellij.platform.migration") version "2.0.1"
+
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.kover) // Gradle Kover Plugin
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
@@ -60,30 +62,58 @@ repositories {
     maven(url = "https://www.jetbrains.com/intellij-repository/releases")
     maven(url = "https://jitpack.io")
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
-
 dependencies {
     implementation(libs.jsoup)
     implementation(libs.dbutils)
     implementation(libs.ideaCompat)
     implementation(libs.websocket) { exclude(module = "slf4j-api") }
     implementation(libs.mp3spi) { exclude(module = "junit") }
+
     testImplementation(libs.junit)
+    intellijPlatform {
+        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\Rider")
+//        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\IntelliJ IDEA Ultimate")
+        bundledPlugins(properties("platformPlugins").map { it.split(',') })
+        plugin("PythonCore:231.8109.144")
+        plugin("Dart:231.8109.91")
+        plugin("org.jetbrains.plugins.go:231.8109.144")
+        instrumentationTools()
+    }
+    implementation(files("libs/byte-buddy-1.15.1.jar"))
+    implementation(files("libs/byte-buddy-agent-1.15.1.jar"))
 }
+//
+//dependencies {
+//    implementation(libs.jsoup)
+//    implementation(libs.dbutils)
+//    implementation(libs.ideaCompat)
+//    implementation(libs.websocket) { exclude(module = "slf4j-api") }
+//    implementation(libs.mp3spi) { exclude(module = "junit") }
+//    testImplementation(libs.junit)
+//}
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    pluginName = properties("pluginName")
-    version = properties("platformVersion")
-    type = properties("platformType")
-
-    // Plugin Dependencies. Use `platformPlugins` property from the gradle.properties file.
-    plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
+//intellij {
+//    pluginName = properties("pluginName")
+//    version = properties("platformVersion")
+//    type = properties("platformType")
+//
+//    // Plugin Dependencies. Use `platformPlugins` property from the gradle.properties file.
+//    plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
+//}
+intellijPlatform {
+    pluginConfiguration {
+        name = properties("pluginName")
+    }
 }
 
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
@@ -144,10 +174,10 @@ tasks {
         }
     }
 
-    // Validate plugin starting from version 2022.3.3 to save disk space
-    listProductsReleases {
-        sinceVersion = "2022.3.3"
-    }
+//    // Validate plugin starting from version 2022.3.3 to save disk space
+//    listProductsReleases {
+//        sinceVersion = "2022.3.3"
+//    }
 
     signPlugin {
         certificateChain = environment("CERTIFICATE_CHAIN")

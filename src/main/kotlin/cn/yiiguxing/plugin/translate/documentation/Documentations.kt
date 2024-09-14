@@ -127,11 +127,6 @@ private fun DocumentationTranslator.getTranslatedDocumentation(document: Documen
             forEach { it.remove() }
         }
 
-    // 删除多余的 `p` 标签。
-    body.selectFirst(CSS_QUERY_CONTENT)
-        ?.nextElementSibling()
-        ?.takeIf { it.isEmptyParagraph() }
-        ?.remove()
 
     val preElements = body.select(TAG_PRE)
     preElements.forEachIndexed { index, element ->

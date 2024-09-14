@@ -17,7 +17,7 @@ import javax.swing.SwingConstants
 internal class WordBookWindowLoadingDecorator(content: JComponent, parent: Disposable) :
     LoadingDecorator(content, parent, -1) {
 
-    override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AsyncProcessIcon): NonOpaquePanel {
+    fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AsyncProcessIcon): NonOpaquePanel {
         parent.layout = GridBagLayout()
 
         text.font = text.font.let { it.deriveFont(it.size + 6f) }

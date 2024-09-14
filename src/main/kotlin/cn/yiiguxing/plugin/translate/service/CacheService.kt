@@ -11,8 +11,10 @@ import com.intellij.util.io.readText
 import java.io.IOException
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.io.path.readText
+import java.nio.file.Path
+
 
 @Service
 @State(name = "Translation.Cache", storages = [(Storage(TranslationStorages.PREFERENCES_STORAGE_NAME))])
@@ -62,7 +64,7 @@ class CacheService : PersistentStateComponent<CacheService.State> {
         try {
             TranslationStorages.createCacheDirectoriesIfNotExists()
             getCacheFilePath(key).writeSafe { it.write(translation.toByteArray()) }
-            println("DEBUG - Puts disk cache: $key")
+            LOG.d("Puts disk cache: $key")
             trimDiskCachesIfNeed()
         } catch (e: Exception) {
             LOG.w(e)
@@ -71,8 +73,8 @@ class CacheService : PersistentStateComponent<CacheService.State> {
 
     fun getDiskCache(key: String): String? {
         return try {
-            getCacheFilePath(key).takeIf { Files.isRegularFile(it) }?.readText()?.apply {
-                println("DEBUG - Disk cache hit: $key")
+            getCacheFilePath(key).takeIf { Files.isRegularFile(it) }?.readText(Charsets.UTF_8)?.apply {
+                LOG.d("Disk cache hit: $key")
             }
         } catch (e: Exception) {
             LOG.w(e)

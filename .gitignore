@@ -3,5 +3,7 @@
 !.idea/icon.svg
 .gradle
 .kotlin
+.qodana
 build
 sandbox
+.intellijPlatform

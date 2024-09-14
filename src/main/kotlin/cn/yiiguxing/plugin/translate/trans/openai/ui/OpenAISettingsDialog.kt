@@ -58,7 +58,7 @@ class OpenAISettingsDialog(private val configType: ConfigType) : DialogWrapper(f
         }
 
     init {
-        setResizable(false)
+        isResizable = false
         init()
         initListeners()
         initValidators()

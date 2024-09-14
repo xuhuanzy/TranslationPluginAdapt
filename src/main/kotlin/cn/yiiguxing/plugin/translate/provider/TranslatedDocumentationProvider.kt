@@ -29,15 +29,16 @@ import java.util.concurrent.TimeoutException
 class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocumentationProvider {
 
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
-        if (!isTranslateDocumentation(element)) {
-            return null
-        }
-
-        return nullIfRecursive {
-            val providerFromElement = DocumentationManager.getProviderFromElement(element, originalElement)
-            val originalDoc = nullIfError { providerFromElement.generateDoc(element, originalElement) }
-            translate(originalDoc, element.language)
-        }
+        return null
+//        if (!isTranslateDocumentation(element)) {
+//            return null
+//        }
+//
+//        return nullIfRecursive {
+//            val providerFromElement = DocumentationManager.getProviderFromElement(element, originalElement)
+//            val originalDoc = nullIfError { providerFromElement.generateDoc(element, originalElement) }
+//            translate(originalDoc, element.language)
+//        }
     }
 
     override fun fetchExternalDocumentation(
@@ -180,7 +181,21 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
             return task
         }
 
-        private fun translate(text: String?, language: Language?): String? {
+        fun translate(text: String?, language: Language?): String? {
+            return translateTask(text, language)?.nonBlockingGetOrDefault {
+                val message = if (it is TimeoutException) {
+                    message("doc.message.translation.timeout.please.try.again")
+                } else {
+                    message("doc.message.translation.failure.please.try.again")
+                }
+                addTranslationFailureMessage(text, message)
+            }
+        }
+
+        fun translateNew(text: String?, language: Language?): String? {
+            if (!Settings.getInstance().translateDocumentation) {
+                return text
+            }
             return translateTask(text, language)?.nonBlockingGetOrDefault {
                 val message = if (it is TimeoutException) {
                     message("doc.message.translation.timeout.please.try.again")
