@@ -1,4 +1,8 @@
-# 适配`Rider`与`K2`的文档翻译, jb版本要求`2024.2.*`或更高
+# 适配`Rider`与`K2`的文档翻译, jb版本要求`2024.2.*`或更高.
+## 安装
+1. 众所周知的`ja-netfilter`, 自己谷歌
+2. 将`releases`的`TranslateExtension.jar`放到`ja-netfilter`的`plugins`目录下
+3. 本地导入`releases`的翻译插件
 
 # [![TranslationPlugin][plugin-logo]][gh:translation-plugin] TranslationPlugin
 
