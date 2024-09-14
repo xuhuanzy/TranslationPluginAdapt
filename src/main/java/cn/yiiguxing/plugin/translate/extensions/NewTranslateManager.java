@@ -5,10 +5,21 @@ import cn.yiiguxing.plugin.translate.provider.TranslatedDocumentationProvider;
 import com.intellij.openapi.project.Project;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.ByteBuddyAgent;
+import net.bytebuddy.asm.Advice;
+import net.bytebuddy.dynamic.ClassFileLocator;
+import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 public class NewTranslateManager extends BaseStartupActivity {
 
@@ -19,30 +30,32 @@ public class NewTranslateManager extends BaseStartupActivity {
     @Override
     protected Object onRunActivity(@NotNull Project project, @NotNull Continuation<? super Unit> $completion) {
         try {
-            // 加载目标类
-            Class<?> clazz = Class.forName("com.xuhuanzy.TranslateExtension.DocumentModify");
+            ByteBuddyAgent.install();
+            Class<?> implKtClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt");
 
-            // 获取 addAction 方法
-            Method addActionMethod = clazz.getDeclaredMethod(
-                    "addAction", Class.forName("com.xuhuanzy.TranslateExtension.DocumentModify$Action")
-            );
+            DynamicType.Loaded<?> bb = new ByteBuddy()
+                    .redefine(implKtClass)
+                    .visit(Advice.to(ComputeDocumentationAdvice.class,
+                                    new ClassFileLocator.Compound(
+                                            ClassFileLocator.ForClassLoader.of(implKtClass.getClassLoader()),
+                                            ClassFileLocator.ForClassLoader.of(NewTranslateManager.class.getClassLoader()))
+                            ).on(ElementMatchers.named("computeDocumentation"))
+                    )
+                    .defineField("_cn_yiiguxing_plugin_translate_xuhuanzy_reflect_action", Function.class, java.lang.reflect.Modifier.STATIC | java.lang.reflect.Modifier.PUBLIC)
+                    .make()
+                    .load(implKtClass.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
 
-            // 创建动态代理来实现 Action 接口
-            Object actionProxy = Proxy.newProxyInstance(
-                    clazz.getClassLoader(),
-                    new Class[]{Class.forName("com.xuhuanzy.TranslateExtension.DocumentModify$Action")},
-                    (proxy, method, args1) -> {
-                        // 将 args1[0] 强制转换为 String
-                        String html = (String) args1[0];
-                        // 调用方法 (例如，你可以对 html 做一些处理)
-                        return TranslatedDocumentationProvider.Companion.translateNew(html, null) ;
-                    }
-            );
+            // 注册翻译入口
+            Function<String, String> translateFunction = (html) -> {
+                return TranslatedDocumentationProvider.Companion.translateNew(html, null);
+            };
+            // 使用反射将静态字段赋值为该 Function 实例
+            Field translateManagerActionField = implKtClass.getDeclaredField("_cn_yiiguxing_plugin_translate_xuhuanzy_reflect_action");
+            translateManagerActionField.setAccessible(true);
+            translateManagerActionField.set(null, translateFunction);
 
-            // 调用 addAction 方法
-            addActionMethod.invoke(null, actionProxy);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace();
         }
 
         return null;

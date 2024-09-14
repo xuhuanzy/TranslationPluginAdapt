@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 
 plugins {
     id("java")
-//    id("org.jetbrains.intellij.platform.migration") version "2.0.1"
+    id("org.jetbrains.intellij.platform.migration") version "2.0.1"
 
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.kover) // Gradle Kover Plugin
@@ -83,7 +83,8 @@ dependencies {
         plugin("org.jetbrains.plugins.go:231.8109.144")
         instrumentationTools()
     }
-//    implementation(files(""))
+    implementation(files("libs/byte-buddy-1.15.1.jar"))
+    implementation(files("libs/byte-buddy-agent-1.15.1.jar"))
 }
 //
 //dependencies {
@@ -153,7 +154,7 @@ tasks {
     }
 
     patchPluginXml {
-        version = "3.7.999"
+        version = fullPluginVersion
         sinceBuild = properties("pluginSinceBuild")
         untilBuild = properties("pluginUntilBuild")
         pluginDescription = projectDir.resolve("DESCRIPTION.md").readText()
