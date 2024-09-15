@@ -117,34 +117,46 @@ private fun Element.isEmptyParagraph(): Boolean = "p".equals(tagName(), true) &&
 
 private fun DocumentationTranslator.getTranslatedDocumentation(document: Document, language: Language?): Document {
     val body = document.body()
-    val definition = body.selectFirst(CSS_QUERY_DEFINITION)
-    val definitions = definition
-        ?.previousElementSiblings()
-        ?.toMutableList()
-        ?.apply {
-            reverse()
-            add(definition)
-            forEach { it.remove() }
-        }
-
-
-    val preElements = body.select(TAG_PRE)
-    preElements.forEachIndexed { index, element ->
-        element.replaceWith(Element(TAG_PRE).attr("id", index.toString()))
+    val definitionElements = body.select(".definition")
+    definitionElements.forEachIndexed { index, element ->
+        element.replaceWith(
+            Element("definitionTranslate").attr("id", index.toString())
+        )
     }
 
+    // <pre> 元素表示预定义格式文本
+    val preElements = body.select("pre")
+    preElements.forEachIndexed { index, element ->
+        element.replaceWith(Element("pre").attr("id", index.toString()))
+    }
+    // 节点说明
+    val sectionElements = body.select("td.section > p")
+    sectionElements.forEachIndexed { index, element ->
+        // 添加 style="white-space: nowrap;"
+        element.attr("style", "white-space: nowrap;")
+        element.replaceWith(
+            Element("sectionTranslate").attr("id", index.toString())
+        )
+    }
+    // 各个语言的忽略内容
     val ignoredElementProvider = language?.let { IgnoredDocumentationElementProvider.forLanguage(it) }
     val ignoredElements = ignoredElementProvider?.ignoreElements(body)
 
+    // 调用翻译
     val translatedDocument = translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
     val translatedBody = translatedDocument.body()
 
+    // 恢复
     preElements.forEachIndexed { index, element ->
-        translatedBody.selectFirst("""${TAG_PRE}[id="$index"]""")?.replaceWith(element)
+        translatedBody.selectFirst("""pre[id="$index"]""")?.replaceWith(element)
+    }
+    sectionElements.forEachIndexed { index, element ->
+        translatedBody.selectFirst("""sectionTranslate[id="$index"]""")?.replaceWith(element)
     }
     ignoredElements?.let { ignoredElementProvider.restoreIgnoredElements(translatedBody, it) }
-    definitions?.let { translatedBody.prependChildren(it) }
-
+    definitionElements.forEachIndexed { index, element ->
+        translatedBody.selectFirst("""definitionTranslate[id="$index"]""")?.replaceWith(element)
+    }
     return translatedDocument
 }
 

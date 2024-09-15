@@ -1,10 +1,9 @@
 package cn.yiiguxing.plugin.translate.provider
 
 import cn.yiiguxing.plugin.translate.Settings
-import cn.yiiguxing.plugin.translate.documentation.DocNotifications
+import cn.yiiguxing.plugin.translate.documentation.*
 import cn.yiiguxing.plugin.translate.documentation.DocTranslationService
 import cn.yiiguxing.plugin.translate.documentation.Documentations
-import cn.yiiguxing.plugin.translate.documentation.TranslateDocumentationTask
 import cn.yiiguxing.plugin.translate.message
 import cn.yiiguxing.plugin.translate.trans.TranslateService
 import cn.yiiguxing.plugin.translate.util.invokeLater
@@ -47,56 +46,58 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
         docUrls: MutableList<String>?,
         onHover: Boolean
     ): String? {
-        val isTranslated = runReadAction { isTranslateDocumentation(element) }
-        if (!isTranslated) {
-            return null
-        }
-
-        return nullIfRecursive {
-            val (language, providerFromElement) = runReadAction {
-                element.takeIf { it.isValid }?.language to DocumentationManager.getProviderFromElement(element, null)
-            }
-            val originalDoc = when (providerFromElement) {
-                is ExternalDocumentationProvider -> nullIfError {
-                    providerFromElement.fetchExternalDocumentation(project, element, docUrls, onHover)
-                }
-
-                else -> null
-            }
-
-            translate(originalDoc, language)
-        }
+        return null
+//        val isTranslated = runReadAction { isTranslateDocumentation(element) }
+//        if (!isTranslated) {
+//            return null
+//        }
+//
+//        return nullIfRecursive {
+//            val (language, providerFromElement) = runReadAction {
+//                element.takeIf { it.isValid }?.language to DocumentationManager.getProviderFromElement(element, null)
+//            }
+//            val originalDoc = when (providerFromElement) {
+//                is ExternalDocumentationProvider -> nullIfError {
+//                    providerFromElement.fetchExternalDocumentation(project, element, docUrls, onHover)
+//                }
+//
+//                else -> null
+//            }
+//
+//            translate(originalDoc, language)
+//        }
     }
 
     @Suppress("UnstableApiUsage")
     override fun generateRenderedDoc(docComment: PsiDocCommentBase): String? {
-        val translationResult = DocTranslationService.getInlayDocTranslation(docComment) ?: return null
-
-        return nullIfRecursive {
-            val providerFromElement = DocumentationManager.getProviderFromElement(docComment)
-            val originalDoc = nullIfError { providerFromElement.generateRenderedDoc(docComment) }
-
-            if (translationResult.original == originalDoc) {
-                return@nullIfRecursive translationResult.translation
-            }
-
-            translateTask(originalDoc, docComment.language)
-                ?.nonBlockingGetOrDefault {
-                    if (it is TimeoutException) {
-                        val project = docComment.project
-                        invokeLater(expired = project.disposed) {
-                            DocNotifications.showTranslationTimeoutWarning(project)
-                        }
-                    }
-                    null
-                }
-                .also { translation ->
-                    DocTranslationService.updateInlayDocTranslation(
-                        docComment,
-                        translation?.let { DocTranslationService.TranslationResult(originalDoc, it) }
-                    )
-                }
-        }
+        return null
+//        val translationResult = DocTranslationService.getInlayDocTranslation(docComment) ?: return null
+//
+//        return nullIfRecursive {
+//            val providerFromElement = DocumentationManager.getProviderFromElement(docComment)
+//            val originalDoc = nullIfError { providerFromElement.generateRenderedDoc(docComment) }
+//
+//            if (translationResult.original == originalDoc) {
+//                return@nullIfRecursive translationResult.translation
+//            }
+//
+//            translateTask(originalDoc, docComment.language)
+//                ?.nonBlockingGetOrDefault {
+//                    if (it is TimeoutException) {
+//                        val project = docComment.project
+//                        invokeLater(expired = project.disposed) {
+//                            DocNotifications.showTranslationTimeoutWarning(project)
+//                        }
+//                    }
+//                    null
+//                }
+//                .also { translation ->
+//                    DocTranslationService.updateInlayDocTranslation(
+//                        docComment,
+//                        translation?.let { DocTranslationService.TranslationResult(originalDoc, it) }
+//                    )
+//                }
+//        }
     }
 
     override fun canPromptToConfigureDocumentation(element: PsiElement?): Boolean {
@@ -162,7 +163,7 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
             }
         }
 
-        private fun translateTask(text: String?, language: Language?): TranslateDocumentationTask? {
+        private fun translateTask(text: String?, language: Language?, type: TranslateType?): TranslateDocumentationTask? {
             if (text.isNullOrEmpty()) return null
 
             val lastTask = lastTranslationTask
@@ -174,15 +175,15 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
                 lastTask.text == text &&
                 (lastTask.isSucceeded || !lastTask.isProcessed)
             ) lastTask
-            else TranslateDocumentationTask(text, language, translator)
+            else TranslateDocumentationTask(text, language, translator, type?: TranslateType.QuickDocumentation)
 
             lastTranslationTask = task
 
             return task
         }
-
+        @Deprecated("现在使用`translateNew`")
         fun translate(text: String?, language: Language?): String? {
-            return translateTask(text, language)?.nonBlockingGetOrDefault {
+            return translateTask(text, language, null)?.nonBlockingGetOrDefault {
                 val message = if (it is TimeoutException) {
                     message("doc.message.translation.timeout.please.try.again")
                 } else {
@@ -192,11 +193,11 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
             }
         }
 
-        fun translateNew(text: String?, language: Language?): String? {
+        fun translateNew(text: String?, language: Language?, type: TranslateType?): String? {
             if (!Settings.getInstance().translateDocumentation) {
                 return text
             }
-            return translateTask(text, language)?.nonBlockingGetOrDefault {
+            return translateTask(text, language, type)?.nonBlockingGetOrDefault {
                 val message = if (it is TimeoutException) {
                     message("doc.message.translation.timeout.please.try.again")
                 } else {
@@ -205,6 +206,21 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
                 addTranslationFailureMessage(text, message)
             }
         }
+
+//        fun translateRiderSummaryItem(text: String?): String? {
+//            if (!Settings.getInstance().translateDocumentation) {
+//                return text
+//            }
+//            return translateTask(text, null)?.nonBlockingGetOrDefault {
+//                val message = if (it is TimeoutException) {
+//                    message("doc.message.translation.timeout.please.try.again")
+//                } else {
+//                    message("doc.message.translation.failure.please.try.again")
+//                }
+//                addTranslationFailureMessage(text, message)
+//            }
+//        }
+
 
         private fun addTranslationFailureMessage(doc: String?, message: String): String? {
             doc ?: return null

@@ -1,6 +1,7 @@
 package cn.yiiguxing.plugin.translate.extensions;
 
 import cn.yiiguxing.plugin.translate.activity.BaseStartupActivity;
+import cn.yiiguxing.plugin.translate.documentation.TranslateType;
 import cn.yiiguxing.plugin.translate.provider.TranslatedDocumentationProvider;
 import com.intellij.openapi.project.Project;
 import kotlin.Unit;
@@ -17,14 +18,12 @@ import net.bytebuddy.utility.RandomString;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import com.intellij.lang.Language;
 
 public class NewTranslateManager extends BaseStartupActivity {
 
@@ -37,63 +36,79 @@ public class NewTranslateManager extends BaseStartupActivity {
     protected Object onRunActivity(@NotNull Project project, @NotNull Continuation<? super Unit> $completion) {
         try {
             Instrumentation instrumentation = ByteBuddyAgent.install();
+            // 需要注入的类加载器
+            ClassLoader pathLoader = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt").getClassLoader();
+            NewTranslateManager.injectDispatcher(instrumentation, pathLoader);
+            NewTranslateManager.commonAdvice(pathLoader);
+//            NewTranslateManager.riderAdvice(instrumentation, pathLoader);
 
-            Class<?> implKtClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt");
-
-            // 注入调度类
-            ClassLoader pathLoader = implKtClass.getClassLoader();
-            NewTranslateManager.injectClass(instrumentation, pathLoader, CustomDispatcher.class);
-            Class<?> dispatcherClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.CustomDispatcher", true, pathLoader);
-            // 注册翻译入口
-            Function<String, String> translateDispatch = (html) -> TranslatedDocumentationProvider.Companion.translateNew(html, null);
-            Field dispatcherClassField = dispatcherClass.getDeclaredField("dispatcher");
-            dispatcherClassField.setAccessible(true);
-            dispatcherClassField.set(null, translateDispatch);
-
-            // 拦截
-            new ByteBuddy()
-                    .rebase(implKtClass)
-                    .visit(Advice.to(ComputeDocumentationAdvice.class,
-                                    new ClassFileLocator.Compound(
-                                            ClassFileLocator.ForClassLoader.of(implKtClass.getClassLoader()),
-                                            ClassFileLocator.ForClassLoader.of(NewTranslateManager.class.getClassLoader()))
-                            ).on(ElementMatchers.named("computeDocumentation"))
-                    )
-                    .make()
-                    .load(implKtClass.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
     }
-
-    // 从 JAR 文件中提取所有的 .class 文件，并返回类名和字节码的映射
-    public static Map<TypeDescription, byte[]> extractClassesFromJar(String jarFilePath) throws IOException {
-        Map<TypeDescription, byte[]> classMap = new HashMap<>();
-        JarFile jarFile = new JarFile(new File(jarFilePath));
-
-        Enumeration<JarEntry> entries = jarFile.entries();
-        while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-
-            // 仅处理 .class 文件
-            if (entry.getName().endsWith(".class")) {
-                String className = entry.getName().replace("/", ".").replace(".class", "");
-
-                // 读取类文件字节码
-                try (InputStream classStream = jarFile.getInputStream(entry)) {
-                    byte[] classBytes = classStream.readAllBytes();
-
-                    // 将类的字节码添加到 Map 中
-                    TypeDescription typeDescription = new TypeDescription.Latent(className, 0, null);
-                    classMap.put(typeDescription, classBytes);
-                }
-            }
-        }
-        return classMap;
+    // 注入调度器
+    public static void injectDispatcher(Instrumentation instrumentation, ClassLoader pathLoader) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+        NewTranslateManager.injectClass(instrumentation, pathLoader, CustomDispatcher.class);
+        Class<?> dispatcherClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.CustomDispatcher", true, pathLoader);
+        // 注册翻译入口
+        BiFunction<String, Language, String> translateDispatch = (html, language) -> TranslatedDocumentationProvider.Companion.translateNew(html, language, null);
+        Field dispatcherClassField = dispatcherClass.getDeclaredField("quickDispatcher");
+        dispatcherClassField.setAccessible(true);
+        dispatcherClassField.set(null, translateDispatch);
     }
+
+    // 通用文档生成
+    public static void commonAdvice(ClassLoader pathLoader) throws ClassNotFoundException {
+        Class<?> implKtClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt");
+        new ByteBuddy()
+                .rebase(implKtClass)
+                .visit(
+                        Advice.to(ComputeDocumentationAdvice.class)
+                                .on(ElementMatchers.named("computeDocumentation"))
+                )
+                .make()
+                .load(implKtClass.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
+
+    }
+
+
+
+    // Rider 特有的
+    public static void riderAdvice(Instrumentation instrumentation,ClassLoader pathLoader) {
+        Class<?> companionClass = null;
+        try {
+            companionClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$Companion");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
+        // 注册特有的翻译接口
+        Class<?> dispatcherClass = null;
+        try {
+            dispatcherClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.CustomDispatcher", true, pathLoader);
+            Function<String, String> translateDispatch = (html) -> TranslatedDocumentationProvider.Companion.translateNew(html, null, TranslateType.RiderSummaryItem);
+            Field dispatcherField = dispatcherClass.getDeclaredField("riderSummaryDispatcher");
+            dispatcherField.setAccessible(true);
+            dispatcherField.set(null, translateDispatch);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+        // 拦截
+        new ByteBuddy()
+                .rebase(companionClass)
+                .visit(
+                        Advice.to(RiderSummaryInfoAdvice.class)
+                                .on(ElementMatchers.named("getSignatureOrTypeSummaryHtml"))
+                )
+                .make()
+                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+    }
+
+
 
     // 注入类
     public static void injectClass(Instrumentation instrumentation, ClassLoader classLoader, Class calssname) throws ClassNotFoundException {
@@ -108,7 +123,7 @@ public class NewTranslateManager extends BaseStartupActivity {
                 new TypeDescription.ForLoadedType(Class.forName(calssname.getName())),
                 ClassFileLocator.ForClassLoader.read(calssname)
         ));
-        classLoader.loadClass(calssname.getName());
+//        classLoader.loadClass(calssname.getName());
     }
 
 }

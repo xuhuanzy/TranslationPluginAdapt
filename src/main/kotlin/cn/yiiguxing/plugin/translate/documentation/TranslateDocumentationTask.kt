@@ -14,10 +14,19 @@ import org.jetbrains.concurrency.runAsync
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
+// 枚举
+enum class TranslateType {
+    // 快速文档
+    QuickDocumentation,
+    // Rider专属的, 在代码建议时弹出的文Api单项
+    RiderSummaryItem
+}
+
 class TranslateDocumentationTask(
     val text: String,
     val language: Language? = null,
-    val translator: Translator = TranslateService.getInstance().translator
+    val translator: Translator = TranslateService.getInstance().translator,
+    val type: TranslateType,
 ) {
 
     // Execute on a different thread outside read action
