@@ -72,19 +72,21 @@ dependencies {
     implementation(libs.ideaCompat)
     implementation(libs.websocket) { exclude(module = "slf4j-api") }
     implementation(libs.mp3spi) { exclude(module = "junit") }
+    implementation(libs.byteBuddy)
+    implementation(libs.byteBuddyAgent)
 
     testImplementation(libs.junit)
     intellijPlatform {
-        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\Rider")
-//        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\IntelliJ IDEA Ultimate")
+//        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\Rider")
+        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\IntelliJ IDEA Ultimate")
         bundledPlugins(properties("platformPlugins").map { it.split(',') })
         plugin("PythonCore:231.8109.144")
         plugin("Dart:231.8109.91")
         plugin("org.jetbrains.plugins.go:231.8109.144")
         instrumentationTools()
     }
-    implementation(files("libs/byte-buddy-1.15.1.jar"))
-    implementation(files("libs/byte-buddy-agent-1.15.1.jar"))
+//    implementation(files("libs/byte-buddy-1.15.1.jar"))
+//    implementation(files("libs/byte-buddy-agent-1.15.1.jar"))
 }
 //
 //dependencies {
