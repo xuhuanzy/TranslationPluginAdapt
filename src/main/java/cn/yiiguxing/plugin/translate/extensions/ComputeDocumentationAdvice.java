@@ -32,6 +32,8 @@ public class ComputeDocumentationAdvice {
     @Advice.OnMethodExit()
 //    public static void onExit( @Advice.Return Object result, @Advice.Enter Language language) {
     public static void onExit(@Advice.Return Object result) {
+        System.out.println("onExit");
+
         if (!(result instanceof DocumentationData documentationData)) {
             return;
         }

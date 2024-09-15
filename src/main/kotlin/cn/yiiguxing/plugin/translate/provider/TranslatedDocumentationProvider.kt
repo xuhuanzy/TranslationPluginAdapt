@@ -194,9 +194,9 @@ class TranslatedDocumentationProvider : DocumentationProviderEx(), ExternalDocum
         }
 
         fun translateNew(text: String?, language: Language?, type: TranslateType?): String? {
-            if (!Settings.getInstance().translateDocumentation) {
-                return text
-            }
+//            if (!Settings.getInstance().translateDocumentation) {
+//                return text
+//            }
             return translateTask(text, language, type)?.nonBlockingGetOrDefault {
                 val message = if (it is TimeoutException) {
                     message("doc.message.translation.timeout.please.try.again")
