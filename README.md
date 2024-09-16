@@ -1,6 +1,11 @@
-# 适配`Rider`与`Clion`的文档翻译(大概率支持所有jb家IDE), jb版本要求`2024.2.*`或更高.
+# 适配`Rider`与`Clion`, jb版本要求`2024.2.*`或更高.
 ## 安装
 1. 插件->从磁盘安装插件->选择`releases`的翻译插件
+
+## 自己 build
+1. `build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("ide本地目录`)`
+
+PS: `RustRover`还自己玩一套异步的, 有人需要我再处理吧. <del>反正我不用rust</del>
 
 # [![TranslationPlugin][plugin-logo]][gh:translation-plugin] TranslationPlugin
 
