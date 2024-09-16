@@ -1,4 +1,10 @@
 <idea-plugin>
+    <extensions defaultExtensionNs="cn.yiiguxing.plugin.translate">
+        <ignoredDocumentationElementProvider
+                language="ObjectiveC"
+                implementationClass="cn.yiiguxing.plugin.translate.provider.ignore.ObjectiveC"/>
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
         <lang.documentationProvider
                 id="Translation.TranslatedDocumentationProvider.ObjectiveC"
