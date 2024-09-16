@@ -122,14 +122,16 @@ public class NewTranslateManager extends BaseStartupActivity {
             Class<?> companionClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$Companion");
             new ByteBuddy()
                     .rebase(companionClass)
-                    .visit(
-                            Advice.to(RiderSummaryInfoAdvice.class)
-                                    .on(ElementMatchers.named("getSignatureOrTypeSummaryHtml"))
-                    )
-                    .visit(
-                            Advice.to(RiderSummaryInfoAdvice.class)
-                                    .on(ElementMatchers.named("B"))
-                    )
+                    .visit(Advice.to(RiderSummaryInfoAdvice.class)
+                            .on(ElementMatchers.named("getSignatureOrTypeSummaryHtml")))
+                    .make()
+                    .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+
+            Class<?> SignatureViewItemClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$SignatureViewItem");
+            new ByteBuddy()
+                    .rebase(SignatureViewItemClass)
+                    .visit(Advice.to(RiderSummaryInfoAdvice.class)
+                            .on(ElementMatchers.named("getHtml")))
                     .make()
                     .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
 
