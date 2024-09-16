@@ -174,6 +174,8 @@ private fun DocumentationTranslator.getTranslatedDocumentation(document: Documen
     definitionElements.forEachIndexed { index, element ->
         translatedBody.selectFirst("""definitionTranslate[id="$index"]""")?.replaceWith(element)
     }
+    translatedDocument.body().appendChild(Element("XuhuanzyTranslateCompleted"))
+
     return translatedDocument
 }
 

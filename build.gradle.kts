@@ -53,7 +53,7 @@ extra["fullPluginVersion"] = fullPluginVersion.get()
 extra["publishChannel"] = publishChannel.get()
 
 group = properties("pluginGroup").get()
-version = "3.7.999"
+version = "3.99.1"
 
 repositories {
     mavenLocal()
@@ -77,9 +77,11 @@ dependencies {
 
     testImplementation(libs.junit)
     intellijPlatform {
+//        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\WebStorm")
         local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\Rider")
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\IntelliJ IDEA Ultimate")
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\CLion")
+//        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\RustRover")
         bundledPlugins(properties("platformPlugins").map { it.split(',') })
         plugin("PythonCore:231.8109.144")
         plugin("Dart:231.8109.91")
@@ -157,7 +159,7 @@ tasks {
     }
 
     patchPluginXml {
-        version = "3.7.999"
+        version = version
         sinceBuild = properties("pluginSinceBuild")
         untilBuild = properties("pluginUntilBuild")
         pluginDescription = projectDir.resolve("DESCRIPTION.md").readText()

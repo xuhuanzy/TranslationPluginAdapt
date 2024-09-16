@@ -45,11 +45,11 @@ public class NewTranslateManager extends BaseStartupActivity {
             NewTranslateManager.injectDispatcher();
 
             NewTranslateManager.commonIntercept(pathLoader, inst);
+//            NewTranslateManager.commonInterceptNew(pathLoader, inst);
             NewTranslateManager.riderIntercept(pathLoader);
 
-
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(System.err);
         }
 
         return null;
@@ -101,9 +101,8 @@ public class NewTranslateManager extends BaseStartupActivity {
         injectTools.injectSystem(DocumentationTargetInterceptor.DocumentImplName.class);
         injectTools.injectSystem(TranslateType.class);
 
+        // 文档生成接口
         injectTools.injectSystem(DocumentationTargetInterceptor.class);
-
-
         new AgentBuilder.Default()
                 .type(ElementMatchers.isSubTypeOf(DocumentationTarget.class))
                 .transform((builder, typeDescription, classLoader, module, domain) ->
@@ -113,8 +112,63 @@ public class NewTranslateManager extends BaseStartupActivity {
                 .with(ClassFileLocator.ForClassLoader.of(pathLoader))
                 .installOn(inst);
 
+        // 协程执行函数, 用于在`DocumentationTargetInterceptor`返回协程信号时保底
+        injectTools.injectSystem(ComputeDocumentationInvokeSuspendInterceptor.class);
+        Class<?> TargetClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt$computeDocumentation$2");
+        new ByteBuddy()
+                .rebase(TargetClass)
+                .method(ElementMatchers.named("invokeSuspend"))
+                .intercept(MethodDelegation.to(ComputeDocumentationInvokeSuspendInterceptor.class))
+                .make()
+                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
     }
 
+    public static void commonInterceptNew(ClassLoader pathLoader, Instrumentation inst) throws Exception {
+//        injectTools.injectSystem(DocumentationContentDataInterceptor.class);
+//        Class<?> DocumentationContentDataClass = Class.forName("com.intellij.platform.backend.documentation.DocumentationContentData");
+//        new ByteBuddy()
+//                .rebase(DocumentationContentDataClass)
+//                .constructor(
+//                        ElementMatchers.isConstructor()
+//                                .and(ElementMatchers.takesArguments(String.class, DocumentationImageResolver.class, String.class, PsiElement.class))
+//                )
+//                .intercept(
+//                        SuperMethodCall.INSTANCE.andThen(
+//                                MethodDelegation.to(DocumentationContentDataInterceptor.class))
+//                    )
+//                .make()
+//                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+
+//        Class<?> ImplKtClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt");
+
+//        new ByteBuddy()
+//                .rebase(ImplKtClass)
+//                .method(ElementMatchers.named("computeDocumentation"))
+//                .intercept(MethodDelegation.to(ComputeDocumentationInterceptor.class))
+//                .make()
+//                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+
+//        injectTools.injectSystem(PsiElementDocumentationTargetInterceptor.class);
+//        Class<?> TargetClass = Class.forName("com.intellij.lang.documentation.psi.PsiElementDocumentationTarget");
+//        new ByteBuddy()
+//                .rebase(TargetClass)
+//                .method(ElementMatchers.named("doComputeDocumentation"))
+//                .intercept(MethodDelegation.to(PsiElementDocumentationTargetInterceptor.class))
+//                .make()
+//                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+
+
+//        new AgentBuilder.Default()
+//                .type(ElementMatchers.isSubTypeOf(DocumentationTarget.class))
+//                .transform((builder, typeDescription, classLoader, module, domain) ->
+//                        builder.method(ElementMatchers.named("computeDocumentation"))
+//                                .intercept(MethodDelegation.to(DocumentationTargetInterceptor.class))
+//                )
+//                .with(ClassFileLocator.ForClassLoader.of(pathLoader))
+//                .installOn(inst);
+
+
+    }
 
     // Rider 特有的
     public static void riderIntercept(ClassLoader pathLoader) {

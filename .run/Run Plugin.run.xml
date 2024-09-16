@@ -36,7 +36,7 @@
           <option value="runIde" />
         </list>
       </option>
-      <option name="vmOptions" value="-Xmx16000m" />
+      <option name="vmOptions" value="-Xmx16g" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>

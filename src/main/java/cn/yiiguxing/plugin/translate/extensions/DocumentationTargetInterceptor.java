@@ -2,11 +2,13 @@ package cn.yiiguxing.plugin.translate.extensions;
 
 import cn.yiiguxing.plugin.translate.documentation.TranslateType;
 import com.intellij.lang.Language;
+import com.intellij.platform.backend.documentation.AsyncDocumentation;
 import com.intellij.platform.backend.documentation.DocumentationData;
 import com.intellij.platform.backend.documentation.DocumentationResult;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.keyFMap.KeyFMap;
+import kotlin.coroutines.Continuation;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
@@ -14,7 +16,7 @@ import net.bytebuddy.implementation.bind.annotation.This;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
-
+import javax.xml.parsers.DocumentBuilder;
 
 public class DocumentationTargetInterceptor {
     static Class<?> DispatcherClass;
@@ -32,6 +34,7 @@ public class DocumentationTargetInterceptor {
         if (!(result instanceof DocumentationData data)) {
             return result;
         }
+
         Language language = getLanguage(self);
         try {
             String currentHtml = data.getHtml();
@@ -66,7 +69,6 @@ public class DocumentationTargetInterceptor {
 
         } catch (Exception ignored) {
         }
-
         return result;
 
     }
