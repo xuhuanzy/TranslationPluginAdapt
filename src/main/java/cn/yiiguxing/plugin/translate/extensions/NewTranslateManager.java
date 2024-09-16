@@ -113,15 +113,6 @@ public class NewTranslateManager extends BaseStartupActivity {
                 .with(ClassFileLocator.ForClassLoader.of(pathLoader))
                 .installOn(inst);
 
-//        injectTools.injectSystem(ComputeDocumentationInterceptor.class);
-//        // 动态修改目标类
-//        new ByteBuddy()
-//                .rebase(Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt$computeDocumentation$2"))
-//                .method(ElementMatchers.named("invokeSuspend"))
-//                .intercept(MethodDelegation.to(ComputeDocumentationInterceptor.class))
-//                .make()
-//                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
-
     }
 
 
@@ -129,9 +120,6 @@ public class NewTranslateManager extends BaseStartupActivity {
     public static void riderIntercept(ClassLoader pathLoader) {
         try {
             Class<?> companionClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$Companion");
-            injectTools.injectSystem(RiderSummaryInfoInterceptor.class);
-            // 拦截
-
             new ByteBuddy()
                     .rebase(companionClass)
                     .visit(
@@ -149,14 +137,6 @@ public class NewTranslateManager extends BaseStartupActivity {
 //            System.out.println("riderIntercept 失败  " + e.getMessage());
 //            e.printStackTrace(System.err);
         }
-
-// 正式环境没有权限
-//            new ByteBuddy()
-//                    .rebase(companionClass)
-//                    .method(ElementMatchers.named("getSignatureOrTypeSummaryHtml"))
-//                    .intercept(MethodDelegation.to(RiderSummaryInfoInterceptor.class))
-//                    .make()
-//                    .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
 
     }
 
