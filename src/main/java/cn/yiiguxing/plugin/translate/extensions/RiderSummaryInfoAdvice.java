@@ -1,25 +1,29 @@
 package cn.yiiguxing.plugin.translate.extensions;
 
-import com.intellij.platform.backend.documentation.DocumentationData;
+import cn.yiiguxing.plugin.translate.documentation.TranslateType;
 import net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Field;
-import java.util.function.Function;
+import java.lang.reflect.Method;
 
 public class RiderSummaryInfoAdvice {
     @Advice.OnMethodExit()
     public static void onExit(@Advice.Return(readOnly = false) String originHtml) {
-        System.out.println("RiderSummaryInfoAdvice onExit");
-        Function<String, String> dispatcher = null;
         try {
-            Class<?> testClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.CustomDispatcher");
-            Field dispatcherField = testClass.getDeclaredField("riderSummaryDispatcher");
+            Class<?> DispatcherClass = Class.forName("cn.yiiguxing.plugin.translate.extensions.TranslateDispatcher");
+            Field dispatcherField = DispatcherClass.getDeclaredField("dispatcher");
             dispatcherField.setAccessible(true);
-            dispatcher = (Function<String, String>) dispatcherField.get(null);
-        } catch (Exception e) {
-            return;
+            Object TranslateObj  = dispatcherField.get(null);
+            // 改了后记得匹配
+            Method TranslateMethod = DispatcherClass.getMethod("translate", String.class, String.class, int.class);
+            TranslateMethod.setAccessible(true);
+            originHtml = (String) TranslateMethod.invoke(TranslateObj,
+                    originHtml,
+                    "",
+                    TranslateType.RiderSummaryItem.ordinal()
+            );
+        } catch (Exception ignored) {
         }
-//        dispatcher.apply(originHtml);
 
     }
 }

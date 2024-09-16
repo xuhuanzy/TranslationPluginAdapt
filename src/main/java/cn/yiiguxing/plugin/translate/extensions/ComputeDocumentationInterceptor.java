@@ -2,6 +2,7 @@ package cn.yiiguxing.plugin.translate.extensions;
 
 import com.intellij.lang.Language;
 import com.intellij.platform.backend.documentation.DocumentationData;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -65,8 +66,16 @@ public class ComputeDocumentationInterceptor {
         return result;
     }
 
+
+
+
     private static Language getLanguage(Object self) {
+
         try {
+
+
+//            self.getClass().getName()
+
             Field targetPointerField = self.getClass().getDeclaredField("$targetPointer");
             targetPointerField.setAccessible(true);
             Object pointer = targetPointerField.get(self);

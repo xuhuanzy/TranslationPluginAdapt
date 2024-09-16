@@ -14,13 +14,7 @@ import org.jetbrains.concurrency.runAsync
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-// 枚举
-enum class TranslateType {
-    // 快速文档
-    QuickDocumentation,
-    // Rider专属的, 在代码建议时弹出的文Api单项
-    RiderSummaryItem
-}
+
 
 class TranslateDocumentationTask(
     val text: String,
@@ -40,7 +34,7 @@ class TranslateDocumentationTask(
         return asyncLatch { latch ->
             runAsync {
                 latch.await(TIME_TO_BLOCK_IN_MILLIS.toLong(), TimeUnit.MILLISECONDS)
-                translator.getTranslatedDocumentation(text, language)
+                translator.getTranslatedDocumentation(text, language, type)
             }.onError { e ->
                 invokeLater(ModalityState.NON_MODAL) { DocNotifications.showError(e, null) }
             }

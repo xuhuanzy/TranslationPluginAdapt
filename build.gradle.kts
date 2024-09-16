@@ -79,6 +79,7 @@ dependencies {
     intellijPlatform {
         local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\Rider")
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\IntelliJ IDEA Ultimate")
+//        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\CLion")
         bundledPlugins(properties("platformPlugins").map { it.split(',') })
         plugin("PythonCore:231.8109.144")
         plugin("Dart:231.8109.91")

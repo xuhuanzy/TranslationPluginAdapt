@@ -16,6 +16,15 @@ import java.io.StringReader
 import javax.swing.text.html.HTMLDocument
 import javax.swing.text.html.HTMLEditorKit
 
+// 枚举
+enum class TranslateType {
+    // 快速文档
+    QuickDocumentation,
+
+    // Rider专属的, 在代码建议时弹出的文Api单项
+    RiderSummaryItem
+}
+
 /**
  * Help class that provide document operations.
  */
@@ -65,7 +74,11 @@ internal val Document.documentationString: String
     get() = Documentations.getDocumentationString(this, false)
 
 
-internal fun Translator.getTranslatedDocumentation(documentation: String, language: Language?): String {
+internal fun Translator.getTranslatedDocumentation(
+    documentation: String,
+    language: Language?,
+    type: TranslateType
+): String {
     val document: Document = Documentations.parseDocumentation(documentation)
     if (document.body().hasAttr(ATTR_TRANSLATED)) {
         return documentation
@@ -73,7 +86,11 @@ internal fun Translator.getTranslatedDocumentation(documentation: String, langua
 
     val translatedDocumentation = try {
         if (this is DocumentationTranslator) {
-            getTranslatedDocumentation(document, language)
+            if (type == TranslateType.RiderSummaryItem) {
+                getRiderRiderSummaryTranslatedDocumentation(document)
+            } else {
+                getTranslatedDocumentation(document, language)
+            }
         } else {
             getTranslatedDocumentation(document)
         }
@@ -158,6 +175,43 @@ private fun DocumentationTranslator.getTranslatedDocumentation(document: Documen
         translatedBody.selectFirst("""definitionTranslate[id="$index"]""")?.replaceWith(element)
     }
     return translatedDocument
+}
+
+private fun DocumentationTranslator.getRiderRiderSummaryTranslatedDocumentation(document: Document): Document {
+    val body: Element = document.body()
+    var brs = body.selectXpath("br[2]")
+    if (brs.isEmpty()) {
+        brs = body.selectXpath("br[1]")
+        if (brs.isEmpty()) {
+            // 没有分割线时一般是一句话提示, 具有 <p>
+            val pFirst = body.selectFirst("p") ?: return document
+            val ignores = pFirst
+                .previousElementSiblings()
+                .toMutableList()
+                .apply {
+                    reverse() // 反转确保顺序, `previousElementSiblings`是从下往上遍历的
+                    forEach { it.remove() } // 移除
+                }
+            // 调用翻译
+            translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
+            ignores.let { body.prependChildren(it) }
+            return document;
+        }
+
+    }
+    val ignores = brs[0]
+        .previousElementSiblings()
+        .toMutableList()
+        .apply {
+            reverse() // 反转确保顺序, `previousElementSiblings`是从下往上遍历的
+            add(brs[0]) // 需要加上自己
+            forEach { it.remove() } // 移除
+        }
+    // 调用翻译
+    translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
+    ignores.let { body.prependChildren(it) }
+
+    return document;
 }
 
 private fun Translator.getTranslatedDocumentation(document: Document): Document {

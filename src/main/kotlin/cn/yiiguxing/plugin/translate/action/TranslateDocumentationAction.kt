@@ -2,6 +2,7 @@ package cn.yiiguxing.plugin.translate.action
 
 import cn.yiiguxing.plugin.translate.adaptedMessage
 import cn.yiiguxing.plugin.translate.documentation.DocNotifications
+import cn.yiiguxing.plugin.translate.documentation.TranslateType
 import cn.yiiguxing.plugin.translate.documentation.getTranslatedDocumentation
 import cn.yiiguxing.plugin.translate.message
 import cn.yiiguxing.plugin.translate.provider.DocumentationElementProvider
@@ -69,7 +70,7 @@ class TranslateDocumentationAction : PsiElementTranslateAction() {
                 }
 
                 val translatedDocumentation =
-                    TranslateService.getInstance().translator.getTranslatedDocumentation(doc, element.language)
+                    TranslateService.getInstance().translator.getTranslatedDocumentation(doc, element.language, TranslateType.QuickDocumentation)
                 invokeLater {
                     val docComponent = documentationComponentRef.get() ?: return@invokeLater
                     val e = editorRef.get()?.takeUnless { it.isDisposed }
