@@ -2,6 +2,7 @@ package cn.yiiguxing.plugin.translate.extensions;
 
 import cn.yiiguxing.plugin.translate.activity.BaseStartupActivity;
 import cn.yiiguxing.plugin.translate.documentation.TranslateType;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.platform.backend.documentation.DocumentationTarget;
 import kotlin.Unit;
@@ -16,6 +17,8 @@ import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.SuperMethodCall;
+import net.bytebuddy.implementation.bind.annotation.SuperMethod;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.RandomString;
 import org.jetbrains.annotations.NotNull;
@@ -113,14 +116,32 @@ public class NewTranslateManager extends BaseStartupActivity {
                 .installOn(inst);
 
         // 协程执行函数, 用于在`DocumentationTargetInterceptor`返回协程信号时保底
-        injectTools.injectSystem(ComputeDocumentationInvokeSuspendInterceptor.class);
+//        injectTools.injectSystem(ComputeDocumentationInvokeSuspendInterceptor.class);
+        injectTools.injectSystem(ComputeDocumentationInvokeSuspendAdvice.class);
         Class<?> TargetClass = Class.forName("com.intellij.platform.backend.documentation.impl.ImplKt$computeDocumentation$2");
         new ByteBuddy()
-                .rebase(TargetClass)
-                .method(ElementMatchers.named("invokeSuspend"))
-                .intercept(MethodDelegation.to(ComputeDocumentationInvokeSuspendInterceptor.class))
+                .redefine(TargetClass)
+                .visit(Advice.to(ComputeDocumentationInvokeSuspendAdvice.class)
+                        .on(ElementMatchers.named("invokeSuspend")))
                 .make()
                 .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+
+//        new ByteBuddy()
+//                .rebase(TargetClass)
+//                .method(ElementMatchers.named("invokeSuspend"))
+//                .intercept(MethodDelegation.to(ComputeDocumentationInvokeSuspendInterceptor.class) )
+//                .make()
+//                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
+
+
+//        new AgentBuilder.Default()
+//                .type( ElementMatchers.named("com.intellij.platform.backend.documentation.impl.ImplKt$computeDocumentation$2")) // 匹配目标类
+//                .transform((builder, typeDescription, classLoader, module, domain) -> builder
+//                        .method(ElementMatchers.named("invokeSuspend")) // 匹配目标方法
+//                        .intercept(MethodDelegation.to(ComputeDocumentationInvokeSuspendInterceptor.class)) // 拦截并委托
+//                )
+//                .with(ClassFileLocator.ForClassLoader.of(pathLoader))
+//                .installOn(inst); // 在 instrumentation 上安装代理
     }
 
     public static void commonInterceptNew(ClassLoader pathLoader, Instrumentation inst) throws Exception {
@@ -172,6 +193,10 @@ public class NewTranslateManager extends BaseStartupActivity {
 
     // Rider 特有的
     public static void riderIntercept(ClassLoader pathLoader) {
+        String productName = ApplicationInfo.getInstance().getVersionName();
+        if (!productName.contains("Rider")) {
+            return;
+        }
         try {
             Class<?> companionClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$Companion");
             new ByteBuddy()
@@ -190,8 +215,8 @@ public class NewTranslateManager extends BaseStartupActivity {
                     .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
 
         } catch (Exception e) {
-//            System.out.println("riderIntercept 失败  " + e.getMessage());
-//            e.printStackTrace(System.err);
+            System.out.println("riderIntercept error " + e.getMessage());
+            e.printStackTrace(System.err);
         }
 
     }

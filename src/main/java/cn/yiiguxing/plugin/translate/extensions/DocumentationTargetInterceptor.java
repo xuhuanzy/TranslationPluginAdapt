@@ -19,9 +19,9 @@ import java.util.concurrent.Callable;
 import javax.xml.parsers.DocumentBuilder;
 
 public class DocumentationTargetInterceptor {
-    static Class<?> DispatcherClass;
-    static Method TranslateMethod;
-    static Object TranslateObj;
+    public static Class<?> DispatcherClass;
+    public static Method TranslateMethod;
+    public static Object TranslateObj;
 
     static Field DocumentationContentField;
     static Field HtmlField;
