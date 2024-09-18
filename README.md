@@ -1,11 +1,22 @@
-# 适配`Rider`与`Clion`与`K2模式`, jb版本要求`2024.2.*`或更高.
+# 适配`Rider`与`Clion`与`RustRover`与`IDEA K2模式`, jb版本要求`2024.2.*`或更高.
 ## 安装
 1. 插件->从磁盘安装插件->选择`releases`的翻译插件
 
 ## 自己 build
 1. `build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("ide本地目录`)`
 
-#### PS: `RustRover`还自己玩一套异步的, 有人需要我再处理吧. <del>反正我不用rust</del>
+## 适配内容
+
+### Rider
+针对Rider做了额外增强, 重载方法的小提示窗口也能翻译了.
+![img.png](.github/readme/rider1.png)
+
+### Clion
+还支持了CMake
+![img.png](.github/readme/Clion1.png)
+
+### RustRover && `IDEA K2模式`
+文档翻译正常
 
 # [![TranslationPlugin][plugin-logo]][gh:translation-plugin] TranslationPlugin
 
