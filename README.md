@@ -4,8 +4,11 @@
 2. 插件->从磁盘安装插件->选择`releases`的翻译插件
 
 ## build
-调试: `build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("修改为ide本地目录`)`
-打包: `Gradle`->`intellij platform`->`signPlugin`
+### 调试
+`build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("修改为ide本地目录`)`
+
+### 打包
+`Gradle`->`intellij platform`->`signPlugin`
 
 ## 警告
 
