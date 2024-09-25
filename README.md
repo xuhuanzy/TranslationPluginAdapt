@@ -1,9 +1,18 @@
-# 适配`Rider`与`Clion`与`RustRover`与`IDEA K2模式`, jb版本要求`2024.2.*`或更高.
+## 适配`Rider`与`Clion`与`RustRover`与`IDEA K2模式`
 ## 安装
-1. 插件->从磁盘安装插件->选择`releases`的翻译插件
+1. 卸载原插件
+2. 插件->从磁盘安装插件->选择`releases`的翻译插件
 
-## 自己 build
-1. `build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("ide本地目录`)`
+## build
+调试: `build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("修改为ide本地目录`)`
+打包: `Gradle`->`intellij platform`->`signPlugin`
+
+## 警告
+
+本插件仅支持idea系`2024.2+`, 且若原插件的文档翻译可用请尽量使用原插件.
+
+本插件通过反射`idea`内部API实现, 可能会引起`idea`异常.
+
 
 ## 适配内容
 
