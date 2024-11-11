@@ -1,5 +1,5 @@
 <idea-plugin url="https://yiiguxing.github.io/TranslationPlugin" require-restart="true">
-    <id>cn.yiiguxing.plugin.translate</id>
+    <id>cn.xuhuanzy.plugin.translate</id>
     <name>Translation</name>
     <vendor email="yii.guxing@outlook.com" url="https://github.com/YiiGuxing">Yii.Guxing</vendor>
 

@@ -83,9 +83,9 @@ dependencies {
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\CLion")
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\RustRover")
         bundledPlugins(properties("platformPlugins").map { it.split(',') })
-        plugin("PythonCore:231.8109.144")
-        plugin("Dart:231.8109.91")
-        plugin("org.jetbrains.plugins.go:231.8109.144")
+        plugin("PythonCore:242.20224.23")
+        plugin("Dart:242.20224.22")
+        plugin("org.jetbrains.plugins.go:242.20224.23")
         instrumentationTools()
     }
 //    implementation(files("libs/byte-buddy-1.15.1.jar"))
@@ -160,8 +160,9 @@ tasks {
 
     patchPluginXml {
         version = version
-        sinceBuild = properties("pluginSinceBuild")
-        untilBuild = properties("pluginUntilBuild")
+        sinceBuild = "242"
+//        untilBuild = "242.*"
+//        untilBuild = properties("pluginUntilBuild")
         pluginDescription = projectDir.resolve("DESCRIPTION.md").readText()
 
         // local variable for configuration cache compatibility

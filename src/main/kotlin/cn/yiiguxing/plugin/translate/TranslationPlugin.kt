@@ -6,7 +6,7 @@ import com.intellij.openapi.extensions.PluginId
 
 object TranslationPlugin {
 
-    const val PLUGIN_ID = "cn.yiiguxing.plugin.translate"
+    const val PLUGIN_ID = "cn.xuhuanzy.plugin.translate"
 
     val descriptor: IdeaPluginDescriptor = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID))!!
 
