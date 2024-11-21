@@ -53,7 +53,7 @@ extra["fullPluginVersion"] = fullPluginVersion.get()
 extra["publishChannel"] = publishChannel.get()
 
 group = properties("pluginGroup").get()
-version = "3.99.1"
+version = "3.99.2"
 
 repositories {
     mavenLocal()
@@ -161,7 +161,7 @@ tasks {
     patchPluginXml {
         version = version
         sinceBuild = "242"
-//        untilBuild = "242.*"
+        untilBuild = "9999.0"
 //        untilBuild = properties("pluginUntilBuild")
         pluginDescription = projectDir.resolve("DESCRIPTION.md").readText()
 
