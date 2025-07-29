@@ -24,7 +24,7 @@ public class ComputeDocumentationInterceptor {
             return result;
         }
 
-        System.out.println("正常");
+//        System.out.println("正常");
         return data;
     }
 }

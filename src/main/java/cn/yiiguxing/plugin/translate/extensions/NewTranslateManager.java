@@ -191,34 +191,36 @@ public class NewTranslateManager extends BaseStartupActivity {
 
     }
 
+    private static final com.intellij.openapi.diagnostic.Logger LOG = com.intellij.openapi.diagnostic.Logger.getInstance(NewTranslateManager.class);
+
     // Rider 特有的
     public static void riderIntercept(ClassLoader pathLoader) {
-        String productName = ApplicationInfo.getInstance().getVersionName();
-        if (!productName.contains("Rider")) {
+        if (!ApplicationInfo.getInstance().getVersionName().contains("Rider")) {
             return;
         }
+
+        String moduleName = switch (ApplicationInfo.getInstance().getMajorVersion()) {
+            case "2024" -> "rider"; // For 2024 version
+            default -> "rdclient"; // For 2025 and newer versions
+        };
+
         try {
-            Class<?> companionClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$Companion");
-            new ByteBuddy()
-                    .rebase(companionClass)
-                    .visit(Advice.to(RiderSummaryInfoAdvice.class)
-                            .on(ElementMatchers.named("getSignatureOrTypeSummaryHtml")))
-                    .make()
-                    .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
-
-            Class<?> SignatureViewItemClass = Class.forName("com.jetbrains.rider.completion.summaryInfo.SummaryInfoViewItem$SignatureViewItem");
-            new ByteBuddy()
-                    .rebase(SignatureViewItemClass)
-                    .visit(Advice.to(RiderSummaryInfoAdvice.class)
-                            .on(ElementMatchers.named("getHtml")))
-                    .make()
-                    .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
-
+            String baseClassName = "com.jetbrains." + moduleName + ".completion.summaryInfo.SummaryInfoViewItem";
+            instrumentClass(pathLoader, baseClassName + "$Companion", "getSignatureOrTypeSummaryHtml");
+            instrumentClass(pathLoader, baseClassName + "$SignatureViewItem", "getHtml");
         } catch (Exception e) {
-            System.out.println("riderIntercept error " + e.getMessage());
-            e.printStackTrace(System.err);
+            LOG.warn("Rider native code instrumentation failed", e);
         }
+    }
 
+    private static void instrumentClass(ClassLoader pathLoader, String className, String methodName) throws ClassNotFoundException {
+        Class<?> targetClass = Class.forName(className);
+        new ByteBuddy()
+                .rebase(targetClass)
+                .visit(Advice.to(RiderSummaryInfoAdvice.class)
+                        .on(ElementMatchers.named(methodName)))
+                .make()
+                .load(pathLoader, ClassReloadingStrategy.fromInstalledAgent());
     }
 
 

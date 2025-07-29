@@ -180,40 +180,55 @@ private fun DocumentationTranslator.getTranslatedDocumentation(document: Documen
 }
 
 private fun DocumentationTranslator.getRiderRiderSummaryTranslatedDocumentation(document: Document): Document {
-    val body: Element = document.body()
-    var brs = body.selectXpath("br[2]")
-    if (brs.isEmpty()) {
-        brs = body.selectXpath("br[1]")
-        if (brs.isEmpty()) {
-            // 没有分割线时一般是一句话提示, 具有 <p>
-            val pFirst = body.selectFirst("p") ?: return document
-            val ignores = pFirst
-                .previousElementSiblings()
-                .toMutableList()
-                .apply {
-                    reverse() // 反转确保顺序, `previousElementSiblings`是从下往上遍历的
-                    forEach { it.remove() } // 移除
-                }
-            // 调用翻译
-            translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
-            ignores.let { body.prependChildren(it) }
-            return document;
-        }
+    val body = document.body() ?: return document
 
+    // 寻找分割线, Rider 的文档通常由 `签名<br>类型<br>描述` 构成。
+    // 我们认为最后一个 <br> 之后的内容是需要翻译的描述。
+    val lastSeparator = body.select("br").lastOrNull()
+
+    // 如果没有 <br> 分割线，我们尝试寻找 <p> 标签，这通常是另一种提示格式。
+    if (lastSeparator == null) {
+        val p = body.selectFirst("p") ?: return document
+
+        // 获取 <p> 之前的所有节点
+        val nodesToKeep = mutableListOf<org.jsoup.nodes.Node>()
+        var currentNode: org.jsoup.nodes.Node? = p.previousSibling()
+        while (currentNode != null) {
+            nodesToKeep.add(currentNode)
+            currentNode = currentNode.previousSibling()
+        }
+        nodesToKeep.reverse()
+
+        // 从父节点移除它们
+        nodesToKeep.forEach { it.remove() }
+
+        // 翻译剩下的 (主要是 <p> 和之后的内容)
+        translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
+
+        // 加回来
+        body.prependChildren(nodesToKeep)
+        return document
     }
-    val ignores = brs[0]
-        .previousElementSiblings()
-        .toMutableList()
-        .apply {
-            reverse() // 反转确保顺序, `previousElementSiblings`是从下往上遍历的
-            add(brs[0]) // 需要加上自己
-            forEach { it.remove() } // 移除
-        }
-    // 调用翻译
-    translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
-    ignores.let { body.prependChildren(it) }
 
-    return document;
+    // 获取最后一个 <br> 标签和它之前的所有兄弟节点
+    val nodesToKeep = mutableListOf<org.jsoup.nodes.Node>()
+    var currentNode: org.jsoup.nodes.Node? = lastSeparator
+    while (currentNode != null) {
+        nodesToKeep.add(currentNode)
+        currentNode = currentNode.previousSibling()
+    }
+    nodesToKeep.reverse() // 将它们按原顺序放回
+
+    // 从文档中将这些要保留的节点移除，此时 body 中只剩下需要翻译的内容。
+    nodesToKeep.forEach { it.remove() }
+
+    // 对剩余的、只包含描述部分的 document 进行翻译。
+    translateDocumentation(document, Lang.AUTO, (this as Translator).primaryLanguage)
+
+    // 翻译完成后，将之前保留的节点重新插入到 body 的最前面。
+    body.prependChildren(nodesToKeep)
+
+    return document
 }
 
 private fun Translator.getTranslatedDocumentation(document: Document): Document {
