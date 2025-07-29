@@ -53,7 +53,7 @@ extra["fullPluginVersion"] = fullPluginVersion.get()
 extra["publishChannel"] = publishChannel.get()
 
 group = properties("pluginGroup").get()
-version = "3.99.2"
+version = "3.99.3"
 
 repositories {
     mavenLocal()
