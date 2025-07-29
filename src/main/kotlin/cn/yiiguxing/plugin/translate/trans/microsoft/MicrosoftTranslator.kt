@@ -28,12 +28,12 @@ object MicrosoftTranslator : AbstractTranslator(), DocumentationTranslator {
     override val intervalLimit: Int = MICROSOFT.intervalLimit
     override val contentLengthLimit: Int = MICROSOFT.contentLengthLimit
     override val primaryLanguage: Lang get() = MICROSOFT.primaryLanguage
-    override val supportedSourceLanguages: List<Lang> = MicrosoftLanguageAdapter.supportedSourceLanguages
-    override val supportedTargetLanguages: List<Lang> = MicrosoftLanguageAdapter.supportedTargetLanguages
+    override val supportedSourceLanguages: List<Lang> = MicrosoftLanguageAdapter.sourceLanguages
+    override val supportedTargetLanguages: List<Lang> = MicrosoftLanguageAdapter.targetLanguages
 
     override fun doTranslate(text: String, srcLang: Lang, targetLang: Lang): Translation {
         if (!targetLang.isExplicit()) {
-            throw UnsupportedLanguageException(targetLang, "Unsupported target language: ${targetLang.langName}")
+            throw UnsupportedLanguageException(targetLang, "Unsupported target language: ${targetLang.localeName}")
         }
 
         val msTranslation = MicrosoftTranslatorService.translate(text, srcLang, targetLang, TextType.PLAIN)

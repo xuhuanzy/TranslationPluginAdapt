@@ -2,6 +2,67 @@
 
 ## [Unreleased]
 
+## [3.7.3] (2025/05/25)
+
+- Fixed the issue where the translation result could not be selected.
+- 修复了译文无法选择的问题
+
+## [3.7.2] (2025/05/15)
+
+- New LLMs in OpenAI Translator engine: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, o4-mini, o3.
+- New LLM in OpenAI TTS engine: GPT-4o mini TTS.
+- New voices in OpenAI TTS engine: Ash, Ballad, Coral, Sage.
+- Fixed an issue that could cause the IDE to freeze when opening a new project.
+- OpenAI 翻译引擎新模型：GPT-4.1、GPT-4.1 mini、GPT-4.1 nano、o4-mini、o3
+- OpenAI TTS 引擎新模型：GPT-4o mini TTS
+- OpenAI TTS 引擎新声音：Ash、Ballad、Coral、Sage
+- 修复了可能导致 IDE 在打开新项目时冻结的问题
+
+## [3.7.1] (2025/03/15)
+
+- The translation dialog action now uses the same shortcut as the translation action.
+- Removed the error report handler.
+- Bug fixes.
+- 翻译对话框操作现在使用与翻译操作相同的快捷方式
+- 移除了错误报告处理程序
+- Bug 修复
+
+## [3.7.0] (2025/02/26)
+
+- Added prompt template support for OpenAI Translator engine.
+- Added custom model naming for OpenAI Translator engine.
+- OpenAI Translator engine and TTS engine support custom API paths.
+- Introduced independent API configuration for OpenAI TTS engine.
+- OpenAI 翻译引擎现已支持自定义模型和提示词模板功能
+- OpenAI 翻译引擎和 TTS 引擎现已支持自定义 API 路径
+- OpenAI TTS 引擎新增独立的 API 配置选项
+
+## [3.6.8] (2024/12/24)
+
+- Bug fixes.
+- Bug 修复
+
+## [3.6.7] (2024/11/10)
+
+- Bug fixes.
+- Bug 修复
+
+## [3.6.6] (2024/10/02)
+
+- User interaction experience optimization and improvement.
+- Bug fixes.
+- 用户交互体验优化与改进
+- Bug 修复
+
+## [3.6.5] (2024/09/17)
+
+- DeepL Translator now supports languages such as Chinese Traditional.
+- User interaction experience optimization and improvement.
+- Bug fixes.
+- DeepL 翻译现已支持繁体中文等语言
+- 用户交互体验优化与改进
+- Bug 修复
+
 ## [3.6.4] (2024/07/23)
 
 - The GPT-4o mini is now available in the OpenAI Translator engine.
@@ -505,7 +566,15 @@
 - 支持单词拆分。翻译变量名或方法名时更方便
 - Bug修复
 
-[Unreleased]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.4...HEAD
+[Unreleased]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.7.3...HEAD
+[3.7.3]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.7.2...v3.7.3
+[3.7.2]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.7.1...v3.7.2
+[3.7.1]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.7.0...v3.7.1
+[3.7.0]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.8...v3.7.0
+[3.6.8]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.7...v3.6.8
+[3.6.7]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.6...v3.6.7
+[3.6.6]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.5...v3.6.6
+[3.6.5]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.4...v3.6.5
 [3.6.4]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.3...v3.6.4
 [3.6.3]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.2...v3.6.3
 [3.6.2]: https://github.com/YiiGuxing/TranslationPlugin/compare/v3.6.1...v3.6.2

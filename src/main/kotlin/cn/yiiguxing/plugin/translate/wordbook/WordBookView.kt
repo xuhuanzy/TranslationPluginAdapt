@@ -19,7 +19,6 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
@@ -60,7 +59,7 @@ class WordBookView {
 
         val contentManager = toolWindow.contentManager
         if (!Application.isUnitTestMode) {
-            (toolWindow as ToolWindowEx).apply {
+            toolWindow.apply {
                 val gearActions = DefaultActionGroup().apply {
                     add(ImportAction())
                     add(ExportActionGroup())
@@ -330,13 +329,15 @@ class WordBookView {
             if (service.isInitialized) {
                 doAction(e)
             } else if (service.state == WordBookState.NO_DRIVER) {
-                Popups.showBalloonForComponent(
-                    e.inputEvent!!.component,
-                    message("wordbook.window.message.missing.driver"),
-                    MessageType.INFO,
-                    e.project,
-                    offsetY = 1
-                )
+                e.inputEvent?.let {
+                    Popups.showBalloonForComponent(
+                        it.component,
+                        message("wordbook.window.message.missing.driver"),
+                        MessageType.INFO,
+                        e.project,
+                        offsetY = 1
+                    )
+                }
             }
         }
 
@@ -370,13 +371,15 @@ class WordBookView {
                     TranslationUIManager.showWordOfTheDayDialog(project, shuffledWords)
                 }
             } else {
-                Popups.showBalloonForComponent(
-                    e.inputEvent!!.component,
-                    message("wordbook.window.message.empty"),
-                    MessageType.INFO,
-                    project,
-                    offsetY = 1
-                )
+                e.inputEvent?.let {
+                    Popups.showBalloonForComponent(
+                        it.component,
+                        message("wordbook.window.message.empty"),
+                        MessageType.INFO,
+                        project,
+                        offsetY = 1
+                    )
+                }
             }
         }
     }

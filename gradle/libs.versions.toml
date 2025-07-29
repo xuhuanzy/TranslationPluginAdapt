@@ -1,20 +1,19 @@
 [versions]
 # libraries
-jsoup = "1.18.1"
+jsoup = "1.20.1"
 dbutils = "1.8.1"
 mp3spi = "1.9.5.4"
 ideaCompat = "0.0.4"
 junit = "4.13.2"
-websocket = "1.5.7"
+websocket = "1.6.0"
 byteBuddy = "1.15.1"
 byteBuddyAgent = "1.15.1"
 
 # plugins
-kotlin = "2.0.20"
-kover = "0.8.3"
-qodana = "2024.1.9"
+kotlin = "2.1.21"
+kover = "0.9.1"
 changelog = "2.2.1"
-gradleIntelliJPlugin = "2.0.1"
+gradleIntelliJPlugin = "2.3.0"
 
 [libraries]
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
@@ -29,6 +28,5 @@ byteBuddyAgent = { group = "net.bytebuddy", name = "byte-buddy-agent", version.r
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-qodana = { id = "org.jetbrains.qodana", version.ref = "qodana" }
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
 gradleIntelliJPlugin = { id = "org.jetbrains.intellij.platform", version.ref = "gradleIntelliJPlugin" }

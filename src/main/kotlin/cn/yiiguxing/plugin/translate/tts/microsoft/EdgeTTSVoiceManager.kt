@@ -166,6 +166,7 @@ internal object EdgeTTSVoiceManager {
         BULGARIAN to "bg-BG",
         CATALAN to "ca-ES",
         CHINESE to "zh-CN",
+        CHINESE_SIMPLIFIED to "zh-CN",
         CHINESE_CANTONESE to "zh-HK",
         CHINESE_TRADITIONAL to "zh-CN",
         CROATIAN to "hr-HR",

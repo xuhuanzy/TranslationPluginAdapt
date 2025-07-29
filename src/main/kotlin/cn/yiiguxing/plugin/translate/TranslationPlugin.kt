@@ -8,18 +8,20 @@ object TranslationPlugin {
 
     const val PLUGIN_ID = "cn.xuhuanzy.plugin.translate"
 
+    private const val PLUGIN_AD_NAME = "IntelliJ Translation Plugin"
+
     val descriptor: IdeaPluginDescriptor = PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID))!!
 
     val name: String by lazy { descriptor.name }
 
+    val adName: String get() = PLUGIN_AD_NAME
+
     val version: String by lazy { descriptor.version }
 
     /**
-     * Generate an id with the specified [postfix].
-     * The generated id is in the format of `<PLUGIN_ID>.<postfix>`.
+     * Generate an id with the specified [key].
+     * The generated id is in the format of `<PLUGIN_ID>.<key>`.
      */
-    fun generateId(postfix: String): String {
-        return "$PLUGIN_ID.$postfix"
-    }
+    fun generateId(key: String): String = "$PLUGIN_ID.$key"
 
 }

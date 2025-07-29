@@ -83,9 +83,9 @@ dependencies {
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\CLion")
 //        local("C:\\Soft\\CodeTools\\IDE\\JetBrains\\RustRover")
         bundledPlugins(properties("platformPlugins").map { it.split(',') })
-        plugin("PythonCore:242.20224.23")
-        plugin("Dart:242.20224.22")
-        plugin("org.jetbrains.plugins.go:242.20224.23")
+//        plugin("PythonCore:242.20224.23")
+//        plugin("Dart:242.20224.22")
+//        plugin("org.jetbrains.plugins.go:242.20224.23")
         instrumentationTools()
     }
 //    implementation(files("libs/byte-buddy-1.15.1.jar"))
@@ -103,7 +103,7 @@ dependencies {
 
 // Set the JVM language level used to build the project. Use Java 11 for 2020.3+, and Java 17 for 2022.2+.
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
@@ -141,7 +141,8 @@ kover {
 tasks {
     runIde {
         systemProperty("idea.is.internal", true)
-        systemProperty("translation.plugin.log.stdout", true)
+        systemProperty("idea.log.trace.categories", "cn.yiiguxing.plugin.translate")
+        systemProperty("idea.log.debug.categories", "cn.yiiguxing.plugin.translate")
 
         jvmArgs = listOf(
             // Enable hotswap, requires JBR 17+ or JBR 11 with DCEVM, and run in debug mode.

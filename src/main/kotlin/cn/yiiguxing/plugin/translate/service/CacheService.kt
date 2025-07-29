@@ -2,19 +2,18 @@ package cn.yiiguxing.plugin.translate.service
 
 import cn.yiiguxing.plugin.translate.TranslationStorages
 import cn.yiiguxing.plugin.translate.trans.Lang
+import cn.yiiguxing.plugin.translate.trans.Lang.Companion.isExplicit
 import cn.yiiguxing.plugin.translate.trans.Translation
 import cn.yiiguxing.plugin.translate.util.*
 import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.io.delete
-import com.intellij.util.io.readText
 import java.io.IOException
 import java.nio.file.DirectoryNotEmptyException
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.io.path.readText
-import java.nio.file.Path
-
 
 @Service
 @State(name = "Translation.Cache", storages = [(Storage(TranslationStorages.PREFERENCES_STORAGE_NAME))])
@@ -32,17 +31,19 @@ class CacheService : PersistentStateComponent<CacheService.State> {
 
     fun putMemoryCache(text: String, srcLang: Lang, targetLang: Lang, translatorId: String, translation: Translation) {
         memoryCache.put(MemoryCacheKey(text, srcLang, targetLang, translatorId), translation)
-        if (Lang.AUTO == srcLang) {
-            memoryCache.put(MemoryCacheKey(text, translation.srcLang, targetLang, translatorId), translation)
+
+        val srcLangToCache = when {
+            srcLang.isExplicit() -> srcLang
+            translation.srcLang.isExplicit() -> translation.srcLang
+            else -> return
         }
-        if (Lang.AUTO == targetLang) {
-            memoryCache.put(MemoryCacheKey(text, srcLang, translation.targetLang, translatorId), translation)
+        val targetLangToCache = when {
+            targetLang.isExplicit() -> targetLang
+            translation.targetLang.isExplicit() -> translation.targetLang
+            else -> return
         }
-        if (Lang.AUTO == srcLang && Lang.AUTO == targetLang) {
-            memoryCache.put(
-                MemoryCacheKey(text, translation.srcLang, translation.targetLang, translatorId),
-                translation
-            )
+        if (srcLangToCache != srcLang || targetLangToCache != targetLang) {
+            memoryCache.put(MemoryCacheKey(text, srcLangToCache, targetLangToCache, translatorId), translation)
         }
     }
 
@@ -73,7 +74,7 @@ class CacheService : PersistentStateComponent<CacheService.State> {
 
     fun getDiskCache(key: String): String? {
         return try {
-            getCacheFilePath(key).takeIf { Files.isRegularFile(it) }?.readText(Charsets.UTF_8)?.apply {
+            getCacheFilePath(key).takeIf { Files.isRegularFile(it) }?.readText()?.apply {
                 LOG.d("Disk cache hit: $key")
             }
         } catch (e: Exception) {

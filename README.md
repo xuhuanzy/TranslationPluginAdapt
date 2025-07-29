@@ -368,6 +368,12 @@ You can contribute and support this project by doing any of the following:
 
 ## Contributors
 
+### Technology Contributors
+
+The CDN acceleration and security protection for this project are sponsored by [Tencent EdgeOne](https://edgeone.ai/?from=github).
+
+[<img src="https://edgeone.ai/media/34fe3a45-492d-4ea4-ae5d-ea1087ca7b4b.png" height="50" alt="Tencent EdgeOne">](https://edgeone.ai/?from=github)
+
 ### Code Contributors
 
 This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
@@ -402,19 +408,18 @@ website. [[Become a sponsor][open-collective-contribute]]
 
 #### Donors
 
-| **Name**   | **Website**                                                | **Amount** |
-|------------|------------------------------------------------------------|------------|
-| 丿初音        |                                                            | 425.00 CNY |
-| 剑平         |                                                            | 120.00 CNY |
-| 山有扶苏       | [github.com/fobgochod](https://github.com/fobgochod)       | 110.00 CNY |
-| Kimmy      |                                                            | 100.00 CNY |
-| LiMingjun  |                                                            | 100.00 CNY |
-| DarknessTM | [github.com/darknesstm](https://github.com/darknesstm)     | 100.00 CNY |
-| Sunlife95  |                                                            | 100.00 CNY |
-| 马强@咔丘互娱    |                                                            | 100.00 CNY |
-| Rrtt\_2323 |                                                            | 100.00 CNY |
-| 唐嘉         | [github.com/qq1427998646](https://github.com/qq1427998646) | 100.00 CNY |
-
+| **Name**   | **Website**                                            | **Amount** |
+|------------|--------------------------------------------------------|------------|
+| 丿初音        |                                                        | 475.00 CNY |
+| 剑平         |                                                        | 120.00 CNY |
+| 山有扶苏       | [github.com/fobgochod](https://github.com/fobgochod)   | 110.00 CNY |
+| 朱振山        |                                                        | 100.00 CNY |
+| 丁云波        |                                                        | 100.00 CNY |
+| 逆行         |                                                        | 100.00 CNY |
+| Kimmy      |                                                        | 100.00 CNY |
+| LiMingjun  |                                                        | 100.00 CNY |
+| DarknessTM | [github.com/darknesstm](https://github.com/darknesstm) | 100.00 CNY |
+| Sunlife95  |                                                        | 100.00 CNY |
 
 
 [More donors][file:financial-contributors]

@@ -1,37 +1,24 @@
 package cn.yiiguxing.plugin.translate.wordbook
 
-import cn.yiiguxing.plugin.translate.Settings
-import cn.yiiguxing.plugin.translate.TranslationPlugin
 import cn.yiiguxing.plugin.translate.adaptedMessage
-import cn.yiiguxing.plugin.translate.message
-import cn.yiiguxing.plugin.translate.ui.settings.TranslationConfigurable
-import cn.yiiguxing.plugin.translate.util.*
-import cn.yiiguxing.plugin.translate.util.concurrent.asyncLatch
-import cn.yiiguxing.plugin.translate.util.concurrent.successOnUiThread
-import com.intellij.ide.util.PropertiesComponent
-import com.intellij.notification.NotificationAction
-import com.intellij.openapi.application.ModalityState
+import cn.yiiguxing.plugin.translate.util.checkDispatchThread
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.openapi.wm.ex.ToolWindowEx
-import org.jetbrains.concurrency.runAsync
+import com.intellij.openapi.wm.ToolWindowManager
 
 /** The id of the wordbook tool window. */
 const val WORDBOOK_TOOL_WINDOW_ID = "Translation.Wordbook"
 
-private val GOT_IT_KEY = TranslationPlugin.generateId("got.it.wordbook.storage.path")
-
 internal interface WordBookToolWindowFactory : ToolWindowFactory, DumbAware {
     companion object {
         /**
-         * Show the word book tool window stripe button.
+         * Show the word book tool window.
          */
-        fun requireWordBook() {
+        fun requireWordBook(project: Project) {
             checkDispatchThread { "Must only be invoked from the Event Dispatch Thread." }
-            Application.messageBus.syncPublisher(RequireWordBookListener.TOPIC).onRequire()
+            ToolWindowManager.getInstance(project).getToolWindow(WORDBOOK_TOOL_WINDOW_ID)?.show()
         }
     }
 }
@@ -42,10 +29,6 @@ internal interface WordBookToolWindowFactory : ToolWindowFactory, DumbAware {
 internal class WordBookToolWindowFactoryImpl : WordBookToolWindowFactory {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        // Try to fix: https://github.com/YiiGuxing/TranslationPlugin/issues/1186
-        if (project.isDisposed) {
-            return
-        }
         WordBookView.getInstance().setup(project, toolWindow)
     }
 
@@ -53,124 +36,6 @@ internal class WordBookToolWindowFactoryImpl : WordBookToolWindowFactory {
         adaptedMessage("wordbook.window.title").let { title ->
             toolWindow.title = title
             toolWindow.stripeTitle = title
-        }
-
-        val project = (toolWindow as ToolWindowEx).project
-        val toolWindowRef = DisposableRef.create(toolWindow.disposable, toolWindow)
-
-        val isStripeButtonShown = toolWindow.isShowStripeButton
-
-        val messageBusConnection = project.messageBus.connect(toolWindow.disposable)
-        messageBusConnection.subscribe(RequireWordBookListener.TOPIC, object : RequireWordBookListener {
-            override fun onRequire() {
-                toolWindowRef.get()?.runIfSurvive {
-                    setAvailable(true) {
-                        if (isStripeButtonShown) {
-                            showStripeButton()
-                        } else {
-                            isShowStripeButton = true
-                            showGotItTooltipIfNeed()
-                        }
-                        show()
-                    }
-                }
-            }
-        })
-
-        if (!isStripeButtonShown) {
-            return
-        }
-
-        // 这里只是修改了状态的复本，这会导致真实的状态和已存储的状态不一致。见：`ToolWindow.showStripeButton()`
-        toolWindow.isShowStripeButton = false
-
-        messageBusConnection.subscribe(WordBookListener.TOPIC, object : WordBookListener {
-            override fun onWordsAdded(service: WordBookService, words: List<WordBookItem>) {
-                toolWindowRef.showStripeButton()
-            }
-
-            override fun onStoragePathChanged(service: WordBookService) {
-                toolWindowRef.updateVisible()
-            }
-        })
-
-        val wordBookService = WordBookService.getInstance()
-        val disposable = Disposer.newDisposable(toolWindow.disposable, "Wordbook tool window availability state")
-        wordBookService.stateBinding.observe(disposable) { state, _ ->
-            if (state == WordBookState.RUNNING) {
-                toolWindowRef.updateVisible()
-                Disposer.dispose(disposable)
-            }
-        }
-        if (wordBookService.isInitialized) {
-            toolWindowRef.updateVisible()
-            Disposer.dispose(disposable)
-        }
-    }
-
-    private fun ToolWindowEx.showStripeButton() {
-        // 由于在`init(ToolWindow)`中设置`isShowStripeButton`为`false`时，只修改了状态的复本，导致真实的状态和记录
-        // 的状态（可能为`true`）不同步，直接设置为`true`可能无效，所以这里需要设置为`false`先同步一下状态。
-        isShowStripeButton = false
-        isShowStripeButton = true
-        showGotItTooltipIfNeed()
-    }
-
-    private fun ToolWindowEx.showGotItTooltipIfNeed() {
-        if (PropertiesComponent.getInstance().getBoolean(GOT_IT_KEY, false)) {
-            return
-        }
-
-        if (Settings.getInstance().wordbookStoragePath.isNullOrEmpty()) {
-            Notifications.showFullContentNotification(
-                message("wordbook.window.title"),
-                message("got.it.notification.text.wordbook.storage.path"),
-                project = project
-            ) {
-                it.addAction(
-                    NotificationAction.createSimpleExpiring(message("action.got.it.text")) {
-                        PropertiesComponent.getInstance().setValue(GOT_IT_KEY, true)
-                    }
-                ).addAction(
-                    NotificationAction.create(message("action.configure.text")) { _, notification ->
-                        notification.expire()
-                        PropertiesComponent.getInstance().setValue(GOT_IT_KEY, true)
-                        TranslationConfigurable.showSettingsDialog(project)
-                    }
-                )
-            }
-        } else {
-            PropertiesComponent.getInstance().setValue(GOT_IT_KEY, true)
-        }
-    }
-
-    private fun DisposableRef<ToolWindowEx>.showStripeButton() {
-        get()?.runIfSurvive { showStripeButton() }
-    }
-
-    private fun DisposableRef<ToolWindowEx>.updateVisible() {
-        asyncLatch { latch ->
-            runAsync {
-                latch.await()
-                with(WordBookService.getInstance()) { isInitialized && hasWords() }
-            }.successOnUiThread(this, ModalityState.NON_MODAL) { toolWindow, available ->
-                if (available) {
-                    toolWindow.showStripeButton()
-                }
-            }
-        }
-    }
-
-    override fun shouldBeAvailable(project: Project): Boolean = true
-
-    private inline fun ToolWindowEx.runIfSurvive(crossinline action: ToolWindowEx.() -> Unit) {
-        if (isDisposed) {
-            return
-        }
-        invokeLater(ModalityState.NON_MODAL, project.disposed) {
-            if (!isDisposed) {
-                action()
-            }
         }
     }
 }

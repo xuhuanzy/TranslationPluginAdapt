@@ -13,9 +13,9 @@ open class Viewer : JTextPane() {
     init {
         isOpaque = false
         isEditable = false
-
         editorKit = WarpEditorKit()
         font = UI.defaultFont
+        caret = EmptyCaret()
     }
 
     fun disableSelection() {

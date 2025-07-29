@@ -44,12 +44,6 @@
             <with attribute="implementationClass"
                   implements="cn.yiiguxing.plugin.translate.provider.IgnoredDocumentationElementProvider"/>
         </extensionPoint>
-        <extensionPoint name="documentationElementProvider"
-                        beanClass="com.intellij.lang.LanguageExtensionPoint"
-                        dynamic="true">
-            <with attribute="implementationClass"
-                  implements="cn.yiiguxing.plugin.translate.provider.DocumentationElementProvider"/>
-        </extensionPoint>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -79,12 +73,11 @@
         <!--<backgroundPostStartupActivity
                 implementation="cn.yiiguxing.plugin.translate.activity.IdeaVersionUpgradeNoticeActivity"/>-->
         <backgroundPostStartupActivity
-                implementation="cn.yiiguxing.plugin.translate.activity.CheckGoogleNetworkStartupActivity"/>
-        <backgroundPostStartupActivity
                 implementation="cn.yiiguxing.plugin.translate.activity.WordOfTheDayStartupActivity"/>
         <actionPromoter implementation="cn.yiiguxing.plugin.translate.action.TranslationPromoter"/>
         <documentationActionProvider
                 implementation="cn.yiiguxing.plugin.translate.documentation.TranslateDocumentationActionProvider"/>
+        <fileEditorProvider implementation="cn.yiiguxing.plugin.translate.view.WebViewProvider"/>
         <webHelpProvider implementation="cn.yiiguxing.plugin.translate.provider.HelpProvider"/>
 
         <errorHandler implementation="cn.yiiguxing.plugin.translate.diagnostic.ReportSubmitter"/>
@@ -94,16 +87,18 @@
         <notificationGroup id="Word Book Import/Export" displayType="BALLOON" isLogByDefault="true"/>
         <notificationGroup id="Translation Plugin updated" displayType="STICKY_BALLOON" isLogByDefault="false"/>
 
+        <registryKey defaultValue="false" description="Enable DevTools menu item in WebView."
+                     key="cn.yiiguxing.plugin.translate.webview.debug"/>
+
         <iconMapper mappingFile="TranslationIconMappings.json"/>
     </extensions>
 
     <actions>
         <action id="Translation.ShowTranslationDialogAction"
                 icon="TranslationIcons.Translation"
-                class="cn.yiiguxing.plugin.translate.action.ShowTranslationDialogAction">
-            <keyboard-shortcut keymap="$default" first-keystroke="control shift O"/>
-            <keyboard-shortcut keymap="Mac OS X" first-keystroke="control meta I" replace-all="true"/>
-            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control meta I" replace-all="true"/>
+                class="cn.yiiguxing.plugin.translate.action.ShowTranslationDialogAction"
+                use-shortcut-of="Translation.EditorTranslateAction">
+            <add-to-group group-id="MainToolbarRight" relative-to-action="SearchEverywhere" anchor="before"/>
             <add-to-group group-id="MainToolbarRight" relative-to-action="SearchEverywhere" anchor="before"/>
         </action>
 
@@ -127,9 +122,6 @@
             <keyboard-shortcut keymap="Mac OS X" first-keystroke="control meta O"/>
             <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="control meta O" replace-all="true"/>
         </action>
-        <action id="Translation.TranslateDocumentationAction"
-                icon="TranslationIcons.Documentation"
-                class="cn.yiiguxing.plugin.translate.action.TranslateDocumentationAction"/>
         <action id="Translation.InclusiveTranslateAction"
                 class="cn.yiiguxing.plugin.translate.action.InclusiveTranslateAction"/>
         <action id="Translation.ExclusiveTranslateAction"
@@ -167,7 +159,6 @@
             <separator/>
             <reference ref="Translation.EditorTranslateAction"/>
             <reference ref="Translation.TranslateAndReplaceAction"/>
-            <reference ref="Translation.TranslateDocumentationAction"/>
             <separator/>
 
             <add-to-group group-id="BasicEditorPopupMenu" anchor="first"/>
