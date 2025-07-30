@@ -7,8 +7,6 @@
 ### 调试
 `build.gradle.kts`->`dependencies`->`intellijPlatform`->`local("修改为ide本地目录`)`
 
-> 调试目标不要选择 2024.3+ 的IDE , UI部分有API不兼容
-
 ### 打包
 `Gradle`->`intellij platform`->`signPlugin`
 
