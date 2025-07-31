@@ -99,7 +99,6 @@
                 class="cn.yiiguxing.plugin.translate.action.ShowTranslationDialogAction"
                 use-shortcut-of="Translation.EditorTranslateAction">
             <add-to-group group-id="MainToolbarRight" relative-to-action="SearchEverywhere" anchor="before"/>
-            <add-to-group group-id="MainToolbarRight" relative-to-action="SearchEverywhere" anchor="before"/>
         </action>
 
         <action id="Translation.SwitchEngineAction"
